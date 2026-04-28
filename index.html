@@ -131,14 +131,13 @@
         async function verify() {
             const params = new URLSearchParams(window.location.search);
             
-            // 1. Get data from URL parameters (passed by QR generator)
-            // This ensures it works on mobile even if Ganache is unreachable
+            // 1. Get data from URL parameters with flexible keys
             const urlData = {
-                name: params.get('name') || "Unknown Product",
-                id: params.get('productId') || params.get('id') || "---",
-                owner: params.get('owner') || "N/A",
-                status: params.get('status') || "Inactive",
-                expiry: params.get('valid') || "N/A"
+                name: params.get('name') || params.get('productName') || params.get('product') || "Product Found",
+                id: params.get('id') || params.get('productId') || params.get('product_id') || "---",
+                owner: params.get('owner') || params.get('ownerName') || "Registered Owner",
+                status: params.get('status') || params.get('isValid') || "Active",
+                expiry: params.get('valid') || params.get('expiry') || params.get('warrantyEnd') || "Verified Date"
             };
 
             const loader = document.getElementById('loader');
@@ -161,7 +160,7 @@
             }
 
             // Update UI State
-            if (urlData.id === "---" || urlData.name === "Unknown Product") {
+            if (urlData.id === "---" || urlData.name === "Product Found") {
                 setInvalidUI();
             } else {
                 document.getElementById('main-status-text').textContent = "Warranty Verified";
@@ -174,7 +173,6 @@
             }
 
             // 3. (Optional/Background) Background Blockchain Verify
-            // This is "extra" and won't block the user from seeing the data
             try {
                 const CONTRACT_ADDRESS = "0x3b625A49d99e8d3BC50C47DCd21f690A65f257A8";
                 const RPC_URL = "http://127.0.0.1:7545";
@@ -186,16 +184,11 @@
                 
                 if (result && result[5] !== "0x0000000000000000000000000000000000000000") {
                     console.log("Blockchain Verification Confirmed");
-                    // Optionally update with "Real-time Verified" badge
                     document.getElementById('product-identity-status').innerHTML = 'Valid Record <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded ml-2 uppercase">Blockchain Verified</span>';
                 }
             } catch (e) {
                 console.log("Background blockchain check skipped (Local Node Unreachable)");
             }
-        }
-
-        function setValidUI(data) {
-            // This is now handled inside verify() for simplicity
         }
 
         function setInvalidUI() {
@@ -219,7 +212,6 @@
             document.getElementById('loader-text').className = "text-red-500 font-bold";
         }
 
-        // Initialize
         window.addEventListener('DOMContentLoaded', verify);
     </script>
 </body>
